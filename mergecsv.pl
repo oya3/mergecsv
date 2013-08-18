@@ -366,8 +366,7 @@ sub makeSpreadsheetData
 		for(my $i=0; $i<$fileValue->{'element_count'}-1;$i++){
 			push @{$ssd{'title_label'}}, ''; # 要素数分進める
 		}
-		#my $offset = $fileValue->{'element_count'} * 1 * $fileCnt;
-		my $offset = $fileCnt;
+		my $offset = $fileValue->{'element_count'} * 1 * $fileCnt;
 		if( $isUseExpected ){
 			# 想定結果がある場合(要素数x2の領域が足される)
 			my $expectedFileName = "$expectedFilesValue->{'base_path'}\\$relativeFileName";
