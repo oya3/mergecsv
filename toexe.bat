@@ -1,1 +1,1 @@
-pp -o mergecsv.exe mergecsv.pl
+pp -gui -o mergecsv.exe mergecsv.pl
