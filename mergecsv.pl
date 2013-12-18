@@ -354,6 +354,7 @@ sub pathSelector
 	my $folder = Win32::GUI::BrowseForFolder( -directory => $dir );
 	return unless ($folder);
 	$$path = decode('cp932', $folder);
+	print ("path[$$path]\n");
 }
 
 
@@ -677,10 +678,8 @@ sub makeSpreadsheetData
 	my $fileCnt = 0;
 	foreach my $fileName ( keys %{$actualFilesValue->{'files'}} ){
 		my $relativeFileName = $fileName;
-		my $tempPath = $actualFilesValue->{'base_path'};
-		$tempPath =~ s/\\/\\\\/g;
-		$relativeFileName =~ s/^$tempPath\\(.+?)$/$1/;
-		#print "temp[$tempPath]\nrelative[$relativeFileName]\n";
+		my $reg = quotemeta $actualFilesValue->{'base_path'};
+		$relativeFileName =~ s/^$reg\\(.+?)$/$1/;
 		
 		my $fileValue = $actualFilesValue->{'files'}{$fileName};
 		# 1件目をベースとするため、2件目以降はフォーマット確認をする
@@ -762,6 +761,9 @@ sub makeSpreadsheetData
 				# 結果要素
 				foreach my $value (@{$expectedFileValue->{'data'}{$key}}){
 					$ssd{'values'}[$row][$base_col+$cnt] = $value;
+					if ($fileValue->{'data'}{$key}[$cnt] ne $value) {
+						printf("$expectedFileName:[$cnt][$key]:actual[$fileValue->{'data'}{$key}[$cnt]]:expected[$value]\n");
+					}
 					$cnt++;
 				}
 				for(;$cnt<$fileValue->{'element_count'};$cnt++){ # 要素が少ない場合、'―'文字で埋めておく
