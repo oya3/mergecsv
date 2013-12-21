@@ -32,7 +32,7 @@ binmode STDERR, ':encoding(cp932)';
 
 my $gCSVPattern = '[^\",]*|\"(?:[^\"]|\"\")*\"';
 
-my $version = "mergecsv ver. 0.13.08.24.\n";
+my $version = "mergecsv ver. 0.13.12.20.\n";
 print "$version\n";
 my ($argv, $gOptions) = getOptions(\@ARGV); # オプションを抜き出す
 
@@ -44,7 +44,7 @@ if( !exists $gOptions->{'nogui'} ){
 	
 	$gTk{'window'} = MainWindow->new();
 	$gTk{'window'}->title("$version");
-#	$gTk{'window'}->geometry("700x440");
+	$gTk{'window'}->geometry("700x440");
 
 	%{$gTk{'work'}} = ();
 	my $work = \%{$gTk{'work'}};
@@ -676,7 +676,10 @@ sub makeSpreadsheetData
 	#                                    {'element_count'}   : 最大要素数
 	my $baseFileValue = undef;
 	my $fileCnt = 0;
-	foreach my $fileName ( keys %{$actualFilesValue->{'files'}} ){
+#	foreach my $fileName ( keys %{$actualFilesValue->{'files'}} ){
+	foreach my $fileName ( sort( keys(%{$actualFilesValue->{'files'}}) ) ) {
+		
+		print "$fileName\n";
 		my $relativeFileName = $fileName;
 		my $reg = quotemeta $actualFilesValue->{'base_path'};
 		$relativeFileName =~ s/^$reg\\(.+?)$/$1/;
@@ -775,7 +778,8 @@ sub makeSpreadsheetData
 					my $drow = $row + 2;
 					my $act = excel_num2col(1+$offset+$i);
 					my $exp = excel_num2col(1+$offset+$fileValue->{'element_count'}+$i);
-					my $cmd = "=IF(EXACT($act$drow,$exp$drow)=TRUE,\"○\",\"×\")";
+					#my $cmd = "=IF(EXACT($act$drow,$exp$drow)=TRUE,\"○\",\"×\")";
+					my $cmd = "=IF(ISBLANK($act$drow),\"－\",IF(EXACT($act$drow,$exp$drow)=TRUE,\"○\",IF(EXACT($act$drow,\"'\"&$exp$drow),\"○\",IF(EXACT(\"'\"&$act$drow,$exp$drow),\"○\",\"×\"))))";
 					$ssd{'values'}[$row][$base_col+$cnt] = $cmd;
 					$cnt++;
 				}
@@ -807,6 +811,8 @@ sub exportExcel
 	{
 		# title_label
 		my $format = $workbook->add_format(); # Add and define a format
+		$format->set_font('ＭＳ Ｐゴシック');
+		$format->set_size(11);
 		$format->set_bg_color('silver');
 		$format->set_bold();
 		$format->set_align('left');
@@ -821,6 +827,8 @@ sub exportExcel
 		# item_label
 		my $format = $workbook->add_format(); # Add and define a format
 		#$format->set_bg_color('silver');
+		$format->set_font('ＭＳ Ｐゴシック');
+		$format->set_size(11);
 		$format->set_bold();
 		$format->set_align('left');
 		$format->set_align('top');
@@ -833,26 +841,15 @@ sub exportExcel
 	{
 		# values
 		my $format = $workbook->add_format(); # Add and define a format
+		$format->set_font('ＭＳ Ｐゴシック');
+		$format->set_size(11);
 		$format->set_align('left');
 		$format->set_align('top');
 
-# 		if(0){
-# 			my $y = 1;
-# 			foreach my $values (@{$ssd->{'values'}}){
-# 				my $x = 1;
-# 				foreach my $value (@{$values}){
-# 					$worksheet->write( $y, $x, $value, $format);
-# 					$x++;
-# 				}
-# 				$y++;
-# 			}
-# 		}else{
-			for(my $y=0;$y<scalar(@{$ssd->{'values'}});$y++){
-				for(my $x=0;$x<scalar(@{$ssd->{'values'}[$y]});$x++){
-					$worksheet->write( 1+$y, 1+$x, $ssd->{'values'}[$y][$x], $format);
-				}
-			}
-#		}
+		my $y_max = scalar(@{$ssd->{'values'}});
+		for(my $y=0;$y<$y_max;$y++){
+			$worksheet->write_row( 1 + $y, 1, $ssd->{'values'}[$y], $format);
+		}
 	}
 	$workbook->close;
 }
